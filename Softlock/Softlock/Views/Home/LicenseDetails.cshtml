@@ -1,0 +1,170 @@
+﻿@model Softlock.Models.LicenseDetailModel
+
+@{
+    ViewData["Title"] = "LicenseDetails";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h4>License Details</h4>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.15/css/bootstrap-multiselect.css" />
+
+<script src="@Url.Content("~/lib/jquery/dist/jquery.js")" type="text/javascript"></script>
+<script src="https://ajax.aspnetcdn.com/ajax/jquery.unobtrusive-ajax/3.2.5/jquery.unobtrusive-ajax.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.15/js/bootstrap-multiselect.min.js"></script>
+
+
+<script>
+
+    $(document).ready(function () {
+
+        
+        $("#selectApplication").on('change', function () {
+
+            $.ajax({
+                cache: true,
+                type: "GET",
+                url: '/Home/GetSpectrawinModels',
+                data: { "ApplicationId": $("#selectApplication").val() },
+                success: function (json) {
+                    json = json || {};
+                    for (var i = 0; i < json.length; i++) {
+                        $("#selectModelNumber").append('<option value="' + json[i].modelNumber + '">' + json[i].modelName + '</option>');
+                    }
+                    $("#selectModelNumber").prop("disabled", false);
+                },
+                error: function () {
+                    alert("Model data not found for Application.");
+                    $("#selectModelNumber").prop("disabled", true);
+                }
+            });
+
+
+            $.ajax({
+                cache: true,
+                type: "GET",
+                url: '/Home/GetOptions',
+                data: { "ApplicationId": $("#selectApplication").val() },
+                success: function (json) {
+                    json = json || {};
+                    for (var i = 0; i < json.length; i++) {
+                        $("#selectLicenseOptions").append('<option value="' + json[i].value + '">' + json[i].optionName + '</option>');
+                    }
+                    $("#selectLicenseOptions").prop("disabled", false);
+                },
+                error: function () {
+                    alert("Data Options not found for Application.");
+                    $("#selectLicenseOptions").prop("disabled", true);
+                }
+            });
+
+            //$("#selectLicenseOptions").multiselect({});
+
+
+            $.ajax({
+                cache: true,
+                type: "GET",
+                url: '/Home/GetLabels',
+                data: { "ApplicationId": $("#selectApplication").val() },
+                success: function (json) {
+                    json = json || {};
+                    for (var i = 0; i < json.length; i++) {
+                        $("#selectOrderType").append('<option value="' + json[i].labelName + '">' + json[i].labelName + '</option>');
+                    }
+                    $("#selectOrderType").prop("disabled", false);
+                },
+                error: function () {
+                    alert("Order Types not found for Application.");
+                    $("#selectOrderType").prop("disabled", true);
+                }
+            });
+
+        });
+    });
+
+</script>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        @if (ViewBag.Message != null && ViewBag.Message != "")
+        {
+            <script type="text/javascript">
+
+            window.onload = function () {
+                alert("@ViewBag.Message");
+            };
+            </script>
+
+        }
+        <form asp-action="LicenseDetails">            
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Application" class="control-label"></label>
+                <select asp-for="Application" class="form-control" id="selectApplication">
+                    @foreach (var item in Model.ApplicationOptions)
+                    {
+                        <option value='@item.Value'>@item.Key</option>
+                    }
+                </select>
+                <span asp-validation-for="Application" class="text-danger"></span>
+            </div>
+            @*<div class="form-group">
+                <label asp-for="OrderType" class="control-label"></label>
+                <select asp-for="OrderType" class="form-control" id="selectOrderType">
+                    <option value="0">Select Label</option>
+                </select>
+                <span asp-validation-for="OrderType" class="text-danger"></span>
+            </div>*@
+            <input asp-for="LicenseType" class="form-control" type="hidden" />
+            <div class="form-group">
+                <label asp-for="LicenseOptions" class="control-label"></label>
+                <select asp-for="LicenseOptions" class="form-control" id="selectLicenseOptions" multiple>
+                </select>
+                <span asp-validation-for="LicenseOptions" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ModelNumber" class="control-label"></label>
+                <select asp-for="ModelNumber" class="form-control" id="selectModelNumber">
+                    <option value="0">Select Model</option>
+                </select>
+                <span asp-validation-for="ModelNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="SerialNumber" class="control-label"></label>
+                <input asp-for="SerialNumber" class="form-control" />
+                <span asp-validation-for="SerialNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ExpirationDays" class="control-label"></label>
+                <input asp-for="ExpirationDays" class="form-control" type="number" min="1" />
+                <span asp-validation-for="ExpirationDays" class="text-danger"></span>
+            </div>
+            @*<div class="form-group">
+                <label asp-for="ActivationDays" class="control-label"></label>
+                <input asp-for="ActivationDays" class="form-control" />
+                <span asp-validation-for="ActivationDays" class="text-danger"></span>
+            </div>*@
+            <div class="form-group">
+                <label asp-for="CustomerName" class="control-label"></label>
+                <input asp-for="CustomerName" class="form-control" />
+                <span asp-validation-for="CustomerName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="OrderNumber" class="control-label"></label>
+                <input asp-for="OrderNumber" class="form-control" />
+                <span asp-validation-for="OrderNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CustomerEmail" class="control-label"></label>
+                <input asp-for="CustomerEmail" class="form-control" />
+                <span asp-validation-for="CustomerEmail" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+                <input type="button" value="Reset" class="btn btn-primary" onclick="this.form.reset();">
+            </div>
+        </form>
+    </div>
+</div>
+

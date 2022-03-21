@@ -1,0 +1,134 @@
+﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
+for details on configuring this project to bundle and minify static web assets. */
+
+a.navbar-brand {
+  white-space: normal;
+  text-align: center;
+  word-break: break-all;
+}
+
+/* Provide sufficient contrast against white background */
+a {
+  color: #0366d6;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: #024ea8;
+  border-color: #024ea8;
+  font-weight:500;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+  color: #fff;
+  background-color: #024ea8;
+  border-color: #024ea8;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+  font-size: 14px;
+}
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.border-top {
+    border-top: 1px solid #ebebeb !important;
+}
+.border-bottom {
+    border-bottom: 2px solid #024ea8 !important;
+}
+
+h4 {
+    color: #024ea8;
+}
+
+hr {
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+
+.box-shadow {
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy {
+  font-size: 1rem;
+  line-height: inherit;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+    /* Margin bottom by footer height */
+    margin-bottom: 60px;
+    
+}
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    white-space: nowrap;
+    line-height: 40px; /* Vertically center the text there */
+    font-size: 1rem;
+    font-color: #000000;
+    background-color: #ebebeb;
+}
+
+
+.control-label {
+    color: #024ea8 !important;
+    font-weight:500;
+    font-size: 1rem;
+}
+
+.marginR30 {
+    margin-right:30px;
+}
+
+.field-validation-error {
+    color: #e80c4d;
+    font-weight: bold;
+}
+
+.field-validation-valid {
+    display: none;
+}
+
+input.input-validation-error {
+    border: 1px solid #e80c4d;
+}
+
+.validation-summary-errors {
+    color: #e80c4d;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.validation-summary-valid {
+    display: none;
+}
+
+.dropdown-item:hover {
+    background-color: #024EA8 !important;
+    color: #FFFFFF !important;
+}
+
+select:focus > option:hover {
+    background-color: #024EA8 !important;
+    color: #FFFFFF !important;
+}
+
+select option:hover {
+    background-color: #024EA8 !important;
+    color: #FFFFFF !important;
+}

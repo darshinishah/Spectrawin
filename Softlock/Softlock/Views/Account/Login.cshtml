@@ -1,0 +1,36 @@
+﻿@model Softlock.Models.LoginModel
+
+@{
+    ViewData["Title"] = "Login";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+
+<h4>Login</h4>
+
+<hr />
+
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Login" method="post">
+            <div class="form-group">
+                <label asp-for="UserName" class="control-label"></label>
+                <input type="text" class="form-control" placeholder="Enter user name" asp-for="UserName" />
+                <span asp-validation-for="UserName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Password" class="control-label"></label>
+                <input class="form-control" placeholder="Password" asp-for="Password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary marginR30"> Login </button>
+                <!--<button class="btn btn-primary" type="reset">Register</button>-->
+            </div>
+        </form>
+    </div>
+</div>
+
