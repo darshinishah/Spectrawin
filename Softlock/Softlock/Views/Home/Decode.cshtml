@@ -17,7 +17,7 @@
         ////    $('#result').hide();
         ////});
 
-        $('#Decrypt').on('click', function (event) {           
+        $('#Decrypt').on('click', function (event) {
             //event.preventDefault();
             //alert($('#testForm').serialize());
             //$.ajax({
@@ -28,7 +28,7 @@
             //    cache: false,
             //    data: $('#testForm').serialize(),
             //    success: function (data) {
-                    
+
             //        $('#result').empty();
             //        $('#result').html(data);
             //    },
@@ -56,7 +56,17 @@
 <hr />
 <div class="row">
     <div class="col-md-12">
-        <form asp-action="Decode" method="post">            
+        @if (ViewBag.Message != null && ViewBag.Message != "")
+        {
+            <script type="text/javascript">
+
+            window.onload = function () {
+                alert("@ViewBag.Message");
+            };
+            </script>
+
+        }
+        <form asp-action="Decode" method="post">
             <label asp-for="KeyPart1" class="control-label"></label>
             <div class="form-group">
                 <input asp-for="KeyPart1" class="form-control" maxlength="8" style="width:150px;display:inline-block;" id="KeyPart1" type="text" />
@@ -80,45 +90,68 @@
                 <input type="submit" value="Decode" id="Decrypt" class="btn btn-primary marginR30" />
                 <input id="Reset" type="button" value="Reset" class="btn btn-primary" style="width:80px;" />
             </div>
-        </form>            
+        </form>
         <div id="result">
             <hr />
             <br />
-            @if(Model != null)
+            @if (Model != null)
             {
-            <div class="form-group">
-                <label asp-for="ApplicationName" class="control-label"></label>
-                :
-                @Model.ApplicationName
-            </div>
-            <div class="form-group">
-                <label asp-for="ModelNumber" class="control-label"></label>
-                :
-                @Model.ModelNumber
-            </div>
-            <div class="form-group">
-                <label asp-for="SerialNumber" class="control-label"></label>
-                :
-                @Model.SerialNumber
-            </div>
-            <div class="form-group">
-                <label asp-for="ActivatedBy" class="control-label"></label>
-                :
-                @Model.ActivatedBy
-            </div>
-            <div class="form-group">
-                <label asp-for="ExpiryDays" class="control-label"></label>
-                :
-                @Model.ExpiryDays Days after Registration
-            </div>
-            <div class="form-group">
-                <label asp-for="Options" class="control-label"></label>
-                :
-                @Model.Options
-            </div>
+                <div class="form-group">
+                    <label asp-for="ApplicationName" class="control-label"></label>
+                    :
+                    @Model.ApplicationName
+                </div>
+                @if (Model.ModelNumber != "PR-999")
+                {
+                    <div class="form-group">
+                        <label asp-for="ModelNumber" class="control-label"></label>
+                        :
+                        @Model.ModelNumber
+                    </div>
+                }
+                @if (Model.SerialNumber != "99999999")
+                {
+                    <div class="form-group">
+                        <label asp-for="SerialNumber" class="control-label"></label>
+                        :
+                        @Model.SerialNumber
+                    </div>
+                }
+                <div class="form-group">
+                    <label asp-for="ActivatedBy" class="control-label"></label>
+                    :
+                    @Model.ActivatedBy
+                </div>
+                <div class="form-group">
+                    <label asp-for="ExpiryDays" class="control-label"></label>
+                    :
+                    @Model.ExpiryDays Days after Registration
+                </div>
+                <div class="form-group">
+                    <label asp-for="Options" class="control-label"></label>
+                    :
+                    @Model.Options
+                </div>
+                <div class="form-group">
+                    License Type
+                    :
+                    @if (Model.ModelNumber == "PR-999" && Model.SerialNumber == "99999999")
+                    {
+                        <span> Master License </span>
+                    }
+                    else if (Model.ExpiryDays == 365)
+                    {
+                        <span> User/Rep. License </span>
+                    }
+                    else
+                    { 
+                        <span> User License </span>
+                    }
+                </div>
+
             }
         </div>
-</div>
+    </div>
 </div>
 
 

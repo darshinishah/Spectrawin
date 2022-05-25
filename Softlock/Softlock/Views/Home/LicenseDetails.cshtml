@@ -16,16 +16,29 @@
 
 <script>
 
-    $(document).ready(function () {
+    function Reset(e) {
+        e.reset();
+        $("#selectModelNumber").children("option").remove();
+        $("#selectLicenseOptions").children("option").remove();
+        $("#selectOrderType").children("option").remove();
+        $("#divOptions").show();
+    }
 
+    $(document).ready(function () {
         
         $("#selectApplication").on('change', function () {
+
+            $("#selectModelNumber").children("option").remove();
+            $("#selectLicenseOptions").children("option").remove();
+            $("#selectOrderType").children("option").remove();            
+            $("#divOptions").show();
 
             $.ajax({
                 cache: true,
                 type: "GET",
                 url: '/Home/GetSpectrawinModels',
                 data: { "ApplicationId": $("#selectApplication").val() },
+                crossDomain: true,
                 success: function (json) {
                     json = json || {};
                     for (var i = 0; i < json.length; i++) {
@@ -44,17 +57,24 @@
                 cache: true,
                 type: "GET",
                 url: '/Home/GetOptions',
+                crossDomain: true,
                 data: { "ApplicationId": $("#selectApplication").val() },
                 success: function (json) {
                     json = json || {};
-                    for (var i = 0; i < json.length; i++) {
-                        $("#selectLicenseOptions").append('<option value="' + json[i].value + '">' + json[i].optionName + '</option>');
+                    if (json.length > 0) {
+                        for (var i = 0; i < json.length; i++) {
+                            $("#selectLicenseOptions").append('<option value="' + json[i].value + '">' + json[i].optionName + '</option>');
+                        }
+                        $("#selectLicenseOptions").prop("disabled", false);
                     }
-                    $("#selectLicenseOptions").prop("disabled", false);
+                    else {
+                        $("#divOptions").hide();
+                    }
                 },
                 error: function () {
                     alert("Data Options not found for Application.");
-                    $("#selectLicenseOptions").prop("disabled", true);
+                    $("#divOptions").hide();
+                    //$("#selectLicenseOptions").prop("disabled", true);
                 }
             });
 
@@ -65,6 +85,7 @@
                 cache: true,
                 type: "GET",
                 url: '/Home/GetLabels',
+                crossDomain: true,
                 data: { "ApplicationId": $("#selectApplication").val() },
                 success: function (json) {
                     json = json || {};
@@ -102,9 +123,12 @@
             <div class="form-group">
                 <label asp-for="Application" class="control-label"></label>
                 <select asp-for="Application" class="form-control" id="selectApplication">
-                    @foreach (var item in Model.ApplicationOptions)
+                    @if(Model != null && Model.ApplicationOptions != null)
                     {
+                        foreach (var item in Model.ApplicationOptions)
+                        {
                         <option value='@item.Value'>@item.Key</option>
+                        }
                     }
                 </select>
                 <span asp-validation-for="Application" class="text-danger"></span>
@@ -117,7 +141,7 @@
                 <span asp-validation-for="OrderType" class="text-danger"></span>
             </div>*@
             <input asp-for="LicenseType" class="form-control" type="hidden" />
-            <div class="form-group">
+            <div class="form-group" id="divOptions">
                 <label asp-for="LicenseOptions" class="control-label"></label>
                 <select asp-for="LicenseOptions" class="form-control" id="selectLicenseOptions" multiple>
                 </select>
@@ -132,12 +156,12 @@
             </div>
             <div class="form-group">
                 <label asp-for="SerialNumber" class="control-label"></label>
-                <input asp-for="SerialNumber" class="form-control" />
+                <input asp-for="SerialNumber" class="form-control" maxlength="9"/>
                 <span asp-validation-for="SerialNumber" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="ExpirationDays" class="control-label"></label>
-                <input asp-for="ExpirationDays" class="form-control" type="number" min="1" />
+                <input asp-for="ExpirationDays" class="form-control" type="number" min="1" max="7400" />
                 <span asp-validation-for="ExpirationDays" class="text-danger"></span>
             </div>
             @*<div class="form-group">
@@ -152,7 +176,7 @@
             </div>
             <div class="form-group">
                 <label asp-for="OrderNumber" class="control-label"></label>
-                <input asp-for="OrderNumber" class="form-control" />
+                <input asp-for="OrderNumber" class="form-control" id="txtOrderNumber"/>
                 <span asp-validation-for="OrderNumber" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -162,7 +186,7 @@
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
-                <input type="button" value="Reset" class="btn btn-primary" onclick="this.form.reset();">
+                <input type="button" value="Reset" class="btn btn-primary" onclick="Reset(this.form);">
             </div>
         </form>
     </div>

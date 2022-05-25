@@ -21,18 +21,19 @@ namespace Softlock.Models
 
         [Display(Name = "Serial Number", Prompt = "Please enter Serial Number", Description = "Serial Number")]
         [Required(ErrorMessage = "*")]
-        [MaxLength(8)]
+        [MaxLength(9)]
+        [MinLength(8)]
         public string SerialNumber { get; set; }
 
         [Display(Name = "Expiration Days", Prompt = "Please enter Expiration Days", Description = "Expiration Days")]        
-        [Required(ErrorMessage = "*")]
+        [Required(ErrorMessage = "*")]        
         public int ExpirationDays { get; set; }
 
         [Display(Name = "Customer Email", Prompt = "Please enter Customer Email", Description = "Customer Email")]        
         [EmailAddress(ErrorMessage = " Invalid Customer Email.")]
         public string CustomerEmail { get; set; }
 
-        [Display(Name = "Order Number", Prompt = "Please enter Application", Description = "Order Number")]
+        [Display(Name = "Order Number", Prompt = "Please enter Order Number", Description = "Order Number")]
         [Required(ErrorMessage = "*")]
         public string OrderNumber { get; set; }
 
@@ -41,7 +42,7 @@ namespace Softlock.Models
         public string CustomerName { get; set; }
 
         [Display(Name = "License Options", Prompt = "Please select License Options", Description = "License Options")]
-        [Required(ErrorMessage = "*")]
+        //[Required(ErrorMessage = "*")]
         public string[] LicenseOptions { get; set; }
 
         public List<KeyValuePair<string, string>> ApplicationOptions { get; set; }

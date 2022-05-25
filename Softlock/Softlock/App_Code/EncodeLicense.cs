@@ -391,22 +391,30 @@ namespace Softlock.App_Code
         public string EncodeKey(LicenseDetailModel model)
         {
             string KeyPart1, KeyPart2, KeyPart3, KeyPart4, KeyPart5, KeyPart6;
-            string serialNumber = model.SerialNumber;
+            string serialNumber_temp = model.SerialNumber, serialNumber = model.SerialNumber;
             int Model = model.ModelNumber;
             string swVersion = model.Application;
             //long options = 0x1A;
-            long options = 0x0;
+            long options_temp = 0x0, options = 0x0;
 
-            foreach (string opt in model.LicenseOptions)
+
+            if(model.LicenseOptions != null && model.LicenseOptions.Length > 0)
             {
-                options += Convert.ToInt32(opt);
+                foreach (string opt in model.LicenseOptions)
+                {
+                    options += Convert.ToInt32(opt);
+                }
             }
 
-            
-
+            if (serialNumber_temp.Length > 8)
+            {
+                serialNumber = serialNumber_temp.Substring(1, 8);
+                char serno = serialNumber_temp[0];
+                options_temp = (serno - 0x30) << 16;
+                options = options_temp | options;
+            }
 
             DateTime cur = DateTime.Now.AddDays(model.ExpirationDays);
-            //DateTime dt = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
             long t = (cur.ToUniversalTime().Ticks - 621355968000000000) / 10000000;
             long ex = model.ExpirationDays * 86400;
 

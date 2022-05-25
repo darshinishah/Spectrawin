@@ -539,10 +539,23 @@ namespace Softlock.App_Code
                 switch (state)
                 {
                     case (int)LicenseState.TIMEDLICENSE:
-                        // model.ApplicationName = ConvertHexToString(twoOut.l);
-                        Combination((int)oneOut.r);
+
+                        
+                        if ((oneOut.r & 0xFFFF0000L) != 0x00000000L)
+                        {
+                            long temp_char = (oneOut.r & 0xFFFF0000L) >> 16;
+                            char serno_extd = (char)(temp_char + 0x30);
+                            string SerialNumber = ConvertHexToString(twoOut.r);
+                            model.SerialNumber = serno_extd + SerialNumber;
+                        }
+                        else
+                        {
+                            model.SerialNumber = ConvertHexToString(twoOut.r);
+                        }
+
+                        Combination((int)(oneOut.r & 0x0000FFFFL));
+
                         model.Options = GetOptionsString();                        
-                        model.SerialNumber = ConvertHexToString(twoOut.r);
                         model.ApplicationName = GetApplicationName(ConvertHexToString(threeOut.l));
                         model.ModelNumber = "PR-" + (temp & 0x0000FFFFL).ToString();
                         DateTime t = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);

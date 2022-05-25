@@ -9,15 +9,16 @@ using System.Threading.Tasks;
 using Softlock.App_Code;
 using Microsoft.AspNetCore.Authorization;
 using Spectrawin.DataAccess;
-using MailKit.Net.Smtp;
-using MailKit.Security;
-using Microsoft.Extensions.Options;
-using MimeKit;
-using MimeKit.Text;
+//using MailKit.Security;
+//using Microsoft.Extensions.Options;
+//using MimeKit;
+//using MimeKit.Text;
 using System.IO;
 using ClosedXML.Excel;
-using System.Drawing;
-using System.Drawing.Drawing2D;
+using System.Net.Mail;
+using Microsoft.Extensions.Configuration;
+using System.Net;
+using MailKit.Security;
 
 namespace Softlock.Controllers
 {
@@ -27,12 +28,15 @@ namespace Softlock.Controllers
         private readonly ILogger<HomeController> _logger;
         private AppDBContext appDBContext;
         private DataHelper helper;
-        
-        public HomeController(ILogger<HomeController> logger, AppDBContext dbContext)
-        {   
+        private bool _isEmailSendUsingGmail = false;
+
+        public HomeController(ILogger<HomeController> logger, AppDBContext dbContext, IConfiguration configuration)
+        {
             appDBContext = dbContext;
             helper = new DataHelper();
-            
+            _isEmailSendUsingGmail = Convert.ToBoolean(configuration["AppSettings:SendEmailThorughGmail"]);
+            //_isEmailSendUsingGmail = settings.options.
+
         }
 
         public IActionResult Index()
@@ -58,8 +62,8 @@ namespace Softlock.Controllers
                 }
                 model.LicenseType = "User";
             }
-            
-            ViewBag.Message= "";
+
+            ViewBag.Message = "";
             return View(model);
 
         }
@@ -110,12 +114,13 @@ namespace Softlock.Controllers
             ViewBag.Message = "";
             return View(model);
         }
-                
+
         [HttpPost]
         public IActionResult LicenseDetails(LicenseDetailModel model)
         {
             try
             {
+                ViewBag.Message = "";
                 //throw new Exception();
                 //call Encode to create a License
                 var encodeObj = new EncodeLicense();
@@ -125,8 +130,10 @@ namespace Softlock.Controllers
                 this.AddLicenseDetailsToDb(model, key);
 
                 //Send Key to Customer
-                if(!string.IsNullOrEmpty(model.CustomerEmail))
-                this.SendEmail(model, key);
+                if (!string.IsNullOrEmpty(model.CustomerEmail))
+                    this.SendEmail(model, key);
+
+                ViewBag.Message = String.Format("License has been generated. Detail file will be automatcially downloaded on your default Download folder.");
 
                 //Generate Excel
                 using (var workbook = new XLWorkbook())
@@ -139,13 +146,13 @@ namespace Softlock.Controllers
                         workbook.SaveAs(stream);
                         var content = stream.ToArray();
 
-                        
+
                         return File(
                             content,
                             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                            fileName);
-                        
-                        if(model.LicenseType == "Master")
+
+                        if (model.LicenseType == "Master")
                             return View("MasterLicensedetails");
                         else if (model.LicenseType == "Master")
                             return View("RepoLicensedetails");
@@ -157,9 +164,9 @@ namespace Softlock.Controllers
             catch (Exception ex)
             {
                 //_logger.LogError(ex.Message);
-                 LogWriter.LogWrite(ex.Message);
+                LogWriter.LogWrite(ex.Message);
                 ViewBag.Message = String.Format("An error occured. Please try again later.");
-                return View();                
+                return View();
             }
         }
 
@@ -184,12 +191,14 @@ namespace Softlock.Controllers
         [HttpGet]
         public IActionResult Decode()
         {
+            ViewBag.Message = "";
             return View();
         }
 
         [HttpPost]
         public IActionResult Decode(LicenseDecodeModel model)
         {
+            ViewBag.Message = "";
             if (ModelState.IsValid)
             {
                 var decodeLicense = new DecodeLicense();
@@ -201,10 +210,10 @@ namespace Softlock.Controllers
                 else
                 {
                     ViewBag.Message = String.Format("Please enter a valid key.");
-                    return RedirectToAction("Decode");
+                    return View("Decode");
                 }
             }
-            return RedirectToAction("Decode");
+            return View("Decode");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -270,7 +279,10 @@ namespace Softlock.Controllers
 
             worksheet.Range(14, 2, 14, 6).Merge();
             worksheet.Row(14).Height = 30;
-            worksheet.Cell(14, 2).Value = " " + helper.GetApplicationName(model.Application) + "  " + GetOptionsString(model.LicenseOptions);
+            if (model.LicenseOptions != null && model.LicenseOptions.Length > 0)
+                worksheet.Cell(14, 2).Value = " " + helper.GetApplicationName(model.Application) + "  " + GetOptionsString(model.LicenseOptions);
+            else
+                worksheet.Cell(14, 2).Value = " " + helper.GetApplicationName(model.Application);
             worksheet.Cell(14, 2).Style.Font.FontSize = 14;
             worksheet.Cell(14, 2).Style.Font.FontColor = XLColor.Black;
             worksheet.Cell(14, 2).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
@@ -309,12 +321,16 @@ namespace Softlock.Controllers
         private void AddLicenseDetailsToDb(LicenseDetailModel model, string key)
         {
             string optns = "";
-            foreach (var opt in model.LicenseOptions)
+            if (model.LicenseOptions != null && model.LicenseOptions.Length > 0)
             {
-                optns += opt + ",";
+                foreach (var opt in model.LicenseOptions)
+                {
+                    optns += opt + ",";
+                }
             }
 
-            optns.Remove(optns.Length - 1);
+            if (optns.Length > 1)
+                optns.Remove(optns.Length - 1);
 
             var objLicenseDetails = new LicenseDetails();
             objLicenseDetails.Application = model.Application;
@@ -338,22 +354,47 @@ namespace Softlock.Controllers
         private void SendEmail(LicenseDetailModel model, string key)
         {
             string appName = helper.GetApplicationName(model.Application);
-            //send email key
-            var email = new MimeMessage();
-            email.From.Add(MailboxAddress.Parse("meetdarshinishah@gmail.com"));
-            email.To.Add(MailboxAddress.Parse(model.CustomerEmail));
-            email.Subject = "Spectrawin License Key for Order Number- " + model.OrderNumber;
-            email.Body = new TextPart(TextFormat.Html)
+            SmtpClient smtpServer = new SmtpClient("mail.gsig.com", 25);            
+            try
             {
-                Text = "Hello " + model.CustomerName + ", <br/><br/> This is email regarding " + appName + " software license key. <br/><br/> Your software key is as follows: <br/> <br/> <b>"
-                                                    + key + "</b><br/><br/> You can download latest " + helper.GetApplicationName(model.Application) + " software version from <a href='https://www.jadaktech.com/resources/photo-research-document-library/spectrawin-2-software/'> " + appName + "</a>."
-                                                    + "<br/><br/>For any query please <a href='https://www.jadaktech.com/contact-us/'> Contact Us </a>. <br/><br/> Regards, <br/> Team Novanta Inc."
-            };
-            using var smtp = new SmtpClient();
-            smtp.Connect("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
-            smtp.Authenticate("meetdarshinishah@gmail.com", "mwilknrrwzwtnjwk");
-            smtp.Send(email);
-            smtp.Disconnect(true);
+
+                if (_isEmailSendUsingGmail)
+                {
+                    smtpServer = new SmtpClient("smtp.gmail.com", 587);
+                    smtpServer.UseDefaultCredentials = false;                   
+                    smtpServer.Credentials = new NetworkCredential("meetdarshinishah@gmail.com", "mwilknrrwzwtnjwk"); 
+                }
+                else
+                {
+
+                    //SmtpServer.Credentials = System.Net.CredentialCache.DefaultNetworkCredentials;
+                    //SmtpServer.Credentials = new System.Net.NetworkCredential("neel.shah@novanta.com", "pooPOO2@");
+
+                    smtpServer.Credentials = new System.Net.NetworkCredential("donotreply@novanta.com", "WelcomeDR1");
+                    smtpServer.EnableSsl = false;
+                    smtpServer.DeliveryMethod = SmtpDeliveryMethod.Network;
+                }
+
+
+                MailMessage mail = new MailMessage();
+
+                mail.From = new MailAddress("donotreply@novanta.com");
+                mail.To.Add(model.CustomerEmail);
+                mail.IsBodyHtml = true;
+                mail.Subject = "Novanta License Key for Order Number- " + model.OrderNumber;
+                mail.Body = "Hello " + model.CustomerName + ", <br/><br/> This is email regarding " + appName + " software license key. <br/><br/> Your software key is as follows: <br/> <br/> <b>"
+                                                        + key + "</b><br/><br/> You can download latest " + helper.GetApplicationName(model.Application) + " software version from <a href='https://www.jadaktech.com/resources/photo-research-document-library/spectrawin-2-software/'> " + appName + "</a>."
+                                                        + "<br/><br/>For any query please <a href='https://www.jadaktech.com/contact-us/'> Contact Us </a>. <br/><br/> Regards, <br/> Team Novanta Inc.";
+
+                smtpServer.Send(mail);
+                //smtpServer.Dispose();
+            }
+            catch (Exception ex)
+            {
+                //_logger.LogError(ex.Message);
+                LogWriter.LogWrite("Send Email: -" + ex.Message);
+                smtpServer.Dispose();
+            }
 
         }
 

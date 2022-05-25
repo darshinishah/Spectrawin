@@ -16,36 +16,43 @@
 
 <script>
 
+    function Reset(e) {
+        e.reset();
+        $("#selectLicenseOptions").children("option").remove();
+        $("#selectOrderType").children("option").remove();
+        $("#divOptions").show();
+    }
+
     $(document).ready(function () {
 
-        $('#Reset').on('click', function (event) {
-            event.preventDefault();
-            
-            $('#KeyPart1').val("");
-            $('#KeyPart2').val("");
-            $('#KeyPart3').val("");
-            $('#KeyPart4').val("");
-            $('#KeyPart5').val("");
-            $('#KeyPart6').val("");
-        });
-
         $("#selectApplication").on('change', function () {
+
+            $("#selectLicenseOptions").children("option").remove();
+            $("#selectOrderType").children("option").remove();            
+            $("#divOptions").show();
 
             $.ajax({
                 cache: true,
                 type: "GET",
                 url: '/Home/GetOptions',
+                crossDomain: true,
                 data: { "ApplicationId": $("#selectApplication").val() },
                 success: function (json) {
                     json = json || {};
-                    for (var i = 0; i < json.length; i++) {
-                        $("#selectLicenseOptions").append('<option value="' + json[i].value + '">' + json[i].optionName + '</option>');
+                    if (json.length > 0) {
+                        for (var i = 0; i < json.length; i++) {
+                            $("#selectLicenseOptions").append('<option value="' + json[i].value + '">' + json[i].optionName + '</option>');
+                        }
+                        $("#selectLicenseOptions").prop("disabled", false);
                     }
-                    $("#selectLicenseOptions").prop("disabled", false);
+                    else {
+                        $("#divOptions").hide();
+                    }
                 },
                 error: function () {
                     alert("Data Options not found for Application.");
-                    $("#selectLicenseOptions").prop("disabled", true);
+                    $("#divOptions").hide();
+                    //$("#selectLicenseOptions").prop("disabled", true);
                 }
             });
 
@@ -56,6 +63,7 @@
                 cache: true,
                 type: "GET",
                 url: '/Home/GetLabels',
+                crossDomain: true,
                 data: { "ApplicationId": $("#selectApplication").val() },
                 success: function (json) {
                     json = json || {};
@@ -109,7 +117,7 @@
                 </select>
                 <span asp-validation-for="OrderType" class="text-danger"></span>
             </div>*@
-            <div class="form-group">
+            <div class="form-group" id="divOptions">
                 <label asp-for="LicenseOptions" class="control-label"></label>
                 <select asp-for="LicenseOptions" class="form-control" id="selectLicenseOptions" multiple>
                 </select>
@@ -117,7 +125,7 @@
             </div>
             <div class="form-group">
                 <label asp-for="ExpirationDays" class="control-label"></label>
-                <input asp-for="ExpirationDays" class="form-control" />
+                <input asp-for="ExpirationDays" class="form-control" min="1" max="7400"/>
                 <span asp-validation-for="ExpirationDays" class="text-danger" type="number" min="1"></span>
             </div>
             @*<div class="form-group">
@@ -132,7 +140,7 @@
             </div>
             <div class="form-group">
                 <label asp-for="OrderNumber" class="control-label"></label>
-                <input asp-for="OrderNumber" class="form-control" />
+                <input asp-for="OrderNumber" class="form-control" id="txtOrderNumber" />
                 <span asp-validation-for="OrderNumber" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -142,7 +150,7 @@
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
-                <input type="button" value="Reset" class="btn btn-primary" onclick="this.form.reset();">
+                <input type="button" value="Reset" class="btn btn-primary" onclick="Reset(this.form);">
             </div>
         </form>
     </div>

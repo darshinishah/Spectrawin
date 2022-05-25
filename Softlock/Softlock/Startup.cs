@@ -17,12 +17,20 @@ namespace Softlock
 {
     public class Startup
     {
+        public IConfiguration Configuration { get; set; }
+
         public Startup(IConfiguration configuration)
         {
+            //var builder = new ConfigurationBuilder()
+            //.SetBasePath(env.ContentRootPath)
+            //.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+
+            //Configuration = builder.Build();
+
             Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
+        
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -38,7 +46,9 @@ namespace Softlock
                         options.UseSqlServer(
                         Configuration.GetConnectionString("DefaultConnection"),
                         ef => ef.MigrationsAssembly(typeof(AppDBContext).Assembly.FullName)));
-            
+
+            services.Configure<Models.MyConfig>(Configuration.GetSection("MyConfig"));
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
